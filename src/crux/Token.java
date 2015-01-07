@@ -135,7 +135,7 @@ public class Token {
 		StringBuilder string = new StringBuilder();
 		string.append(this.lexeme);
 		string.append("(lineNum: " + this.lineNumber() + 
-					  ", charPos" + this.charPosition() + ") ");
+					  ", charPos" + this.charPosition() + ")");
 		return string.toString();
 		// TODO: implement this
 	}
