@@ -34,6 +34,7 @@ public class Scanner implements Iterable<Token> {
 			{
 				charPos = 0;
 				lineNum++;
+				readChar();
 			}
 			else
 			{
@@ -44,7 +45,6 @@ public class Scanner implements Iterable<Token> {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
 		
 		return nextChar;
 	}
@@ -57,6 +57,7 @@ public class Scanner implements Iterable<Token> {
 	 */
 	public Token next()
 	{
+		
 		int result = readChar();
 		if(result < 0)  //End of file reached
 		{
@@ -66,7 +67,24 @@ public class Scanner implements Iterable<Token> {
 		StringBuilder string = new StringBuilder();
 		string.append(lexeme);
 		
+		if(lexeme == '=')
+		{
+			char character = (char)readChar();
+			if(character == '=')
+			{
+				string.append(character);
+				return new Token(string.toString(), lineNum, charPos);
+			}
+			else
+			{
+				return new Token(string.toString(), lineNum, charPos);
+			}
+		}
 		
+		
+		
+		
+	
 		return new Token(string.toString(), lineNum, charPos);
 		// TODO: implement this
 		
