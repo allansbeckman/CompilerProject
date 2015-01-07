@@ -10,7 +10,7 @@ public class Scanner implements Iterable<Token> {
 	
 	private int lineNum;  // current line count
 	private int charPos;  // character offset for current line
-	private int nextChar; // contains the next char (-1 == EOF)
+	private int nextChar; // contains the next char (-1 == EOF, -2 == BOF)
 	private Reader input;
 	
 	Scanner(Reader reader)
@@ -25,11 +25,30 @@ public class Scanner implements Iterable<Token> {
 	// OPTIONAL: helper function for reading a single char from input
 	//           can be used to catch and handle any IOExceptions,
 	//           advance the charPos or lineNum, etc.
-	/*
-	private int readChar() {
 	
+	private int readChar() 
+	{
+		try {
+			nextChar = input.read();
+			if(nextChar == '\n')
+			{
+				charPos = 0;
+				lineNum++;
+			}
+			else
+			{
+				charPos++;
+			}
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		return nextChar;
 	}
-	*/
+	
 		
 
 	/* Invariants:
@@ -38,8 +57,19 @@ public class Scanner implements Iterable<Token> {
 	 */
 	public Token next()
 	{
+		int result = readChar();
+		if(result < 0)  //End of file reached
+		{
+			return Token.EOF(lineNum, charPos);
+		}
+		char lexeme = (char) result;
+		StringBuilder string = new StringBuilder();
+		string.append(lexeme);
+		
+		
+		return new Token(string.toString(), lineNum, charPos);
 		// TODO: implement this
-		return null;
+		
 	}
 
 	@Override

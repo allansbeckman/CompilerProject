@@ -77,14 +77,14 @@ public class Token {
 	
 	
 	// OPTIONAL: implement factory functions for some tokens, as you see fit
-	/*           
+	   
 	public static Token EOF(int linePos, int charPos)
 	{
 		Token tok = new Token(linePos, charPos);
 		tok.kind = Kind.EOF;
 		return tok;
 	}
-	*/
+	
 
 	private Token(int lineNum, int charPos)
 	{
@@ -100,10 +100,25 @@ public class Token {
 	{
 		this.lineNum = lineNum;
 		this.charPos = charPos;
+
+		Kind[] kinds = Kind.values();
+		for(int i = 0; i < kinds.length; i++)
+		{
+			if(kinds[i].default_lexeme.compareTo(lexeme) == 0)
+			{
+				this.kind = kinds[i];	
+				break;
+			}
+		}
+		
+		if(this.kind == null)
+		{
+			
+		}
 		
 		// TODO: based on the given lexeme determine and set the actual kind
 		try {
-			this.kind = Kind.valueOf(lexeme);
+			//this.kind = Kind.valueOf(lexeme);
 			this.lexeme = lexeme;
 		} catch (IllegalArgumentException e)
 		{
@@ -133,7 +148,7 @@ public class Token {
 	public String toString()
 	{
 		StringBuilder string = new StringBuilder();
-		string.append(this.lexeme);
+		string.append(this.kind);
 		string.append("(lineNum: " + this.lineNumber() + 
 					  ", charPos" + this.charPosition() + ")");
 		return string.toString();
