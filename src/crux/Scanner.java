@@ -73,17 +73,24 @@ public class Scanner implements Iterable<Token> {
 			if(character == '=')
 			{
 				string.append(character);
-				return new Token(string.toString(), lineNum, charPos);
+				
 			}
-			else
+			return new Token(string.toString(), lineNum, charPos);
+		
+		}
+		
+		if(lexeme == '>' || lexeme == '<')
+		{
+			char character = (char) readChar();
+			if(character == '=')
 			{
-				return new Token(string.toString(), lineNum, charPos);
+				string.append(character);			
 			}
+			return new Token(string.toString(), lineNum, charPos);
 		}
 		
 		
-		
-		
+
 	
 		return new Token(string.toString(), lineNum, charPos);
 		// TODO: implement this
