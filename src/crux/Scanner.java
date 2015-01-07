@@ -89,8 +89,26 @@ public class Scanner implements Iterable<Token> {
 			return new Token(string.toString(), lineNum, charPos);
 		}
 		
+		if(lexeme == ':')
+		{
+			char character = (char) readChar();
+			if(character == ':')
+			{
+				string.append(character);
+			}
+			return new Token(string.toString(), lineNum, charPos);
+		}
 		
-
+		if(lexeme == '!')
+		{
+			char character = (char) readChar();
+			if(character == '=')
+			{
+				string.append(character);
+				return new Token(string.toString(), lineNum, charPos);
+			}
+			return new Token("ERROR", lineNum, charPos);
+		}
 	
 		return new Token(string.toString(), lineNum, charPos);
 		// TODO: implement this
