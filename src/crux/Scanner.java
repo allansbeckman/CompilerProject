@@ -31,7 +31,7 @@ public class Scanner implements Iterable<Token> {
 		try {
 			nextChar = input.read();
 			if(nextChar == '\n')
-			{	
+			{
 				charPos = 0;
 				lineNum++;
 			}
@@ -51,7 +51,13 @@ public class Scanner implements Iterable<Token> {
 	
 	public Token next()
 	{
+		while(this.nextChar == 10 || this.nextChar == 13)
+		{
+			readChar();
+		}
+		
 		char current = (char) this.nextChar;
+		
 		int startLine = this.lineNum;
 		int startChar = this.charPos;
 		if(current == '=') //After accepting the first equal sign we read the character to look if the next one is also an equals.
@@ -68,12 +74,23 @@ public class Scanner implements Iterable<Token> {
 				return new Token("=", startLine, startChar);
 			}
 		}
-
-		if(nextChar == 10 || nextChar == 13)
+		
+		if(current == '<')
 		{
 			readChar();
-			next();
+			current = (char) this.nextChar;
+			if(current == '=')
+			{
+				readChar();
+				return new Token("<=", startLine, startChar);
+			}
+			else
+			{
+				return new Token("<", startLine, startChar);
+			}
 		}
+		
+		
 		
 		if(this.nextChar < 0)
 		{
