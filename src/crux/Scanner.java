@@ -3,6 +3,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Iterator;
 
+import crux.Token.Kind;
+
 public class Scanner implements Iterable<Token> {
 	public static String studentName = "Allan Beckman";
     public static String studentID = "21588725";
@@ -48,7 +50,12 @@ public class Scanner implements Iterable<Token> {
 		return nextChar;
 	}
 	
+	//Think of program as a state machine.
 	
+	/* Invariants:
+	 *  1. call assumes that nextChar is already holding an unread character
+	 *  2. return leaves nextChar containing an untokenized character
+	 */
 	public Token next()
 	{
 		while(this.nextChar == 10 || this.nextChar == 13 || (char)this.nextChar == ' ')
@@ -63,21 +70,33 @@ public class Scanner implements Iterable<Token> {
 		
 		StringBuilder string = new StringBuilder();
 		
+		//Checks for integers and floats.
 		if(Character.isDigit(current))
 		{
 			string.append(current);
 			readChar();
 			current = (char) this.nextChar;
 			boolean isFloat = false;
-			while(Character.isDigit(current) || current == '.')
+			while(Character.isDigit(current) || (current == '.' && ! isFloat))
 			{
+				if(current == '.')
+				{
+					isFloat = true;
+				}
 				string.append(current);
 				readChar();
 				current = (char) this.nextChar;
 			}
-			return Token.integerToken(string.toString(), startLine, startChar);
+			if(isFloat)
+			{
+				return Token.tokenWithKind(string.toString(), Kind.FLOAT, startLine, startChar);
+			}
+			else
+				return Token.integerToken(string.toString(), startLine, startChar);
 		}
 		
+		
+		//Parses sequences of letters that can be either identifiers or keywords.
 		if(Character.isLetter(current) || current == '_')
 		{
 			string.append(current);
@@ -146,12 +165,7 @@ public class Scanner implements Iterable<Token> {
 		return null;
 	}
 	
-	//Think of program as a state machine.
 	
-	/* Invariants:
-	 *  1. call assumes that nextChar is already holding an unread character
-	 *  2. return leaves nextChar containing an untokenized character
-	 */
 	/*public Token next()
 	{
 		
