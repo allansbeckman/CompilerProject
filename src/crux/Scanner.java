@@ -51,7 +51,7 @@ public class Scanner implements Iterable<Token> {
 	
 	public Token next()
 	{
-		while(this.nextChar == 10 || this.nextChar == 13)
+		while(this.nextChar == 10 || this.nextChar == 13 || (char)this.nextChar == ' ')
 		{
 			readChar();
 		}
@@ -60,6 +60,39 @@ public class Scanner implements Iterable<Token> {
 		
 		int startLine = this.lineNum;
 		int startChar = this.charPos;
+		
+		StringBuilder string = new StringBuilder();
+		
+		if(Character.isDigit(current))
+		{
+			string.append(current);
+			readChar();
+			current = (char) this.nextChar;
+			boolean isFloat = false;
+			while(Character.isDigit(current) || current == '.')
+			{
+				string.append(current);
+				readChar();
+				current = (char) this.nextChar;
+			}
+			return Token.integerToken(string.toString(), startLine, startChar);
+		}
+		
+		if(Character.isLetter(current) || current == '_')
+		{
+			string.append(current);
+			readChar();
+			current = (char) this.nextChar;
+			while(Character.isLetter(current) || Character.isDigit(current) || current == '_')
+			{
+				string.append(current);
+				readChar();
+				current = (char) this.nextChar;
+			}
+			return new Token(string.toString(), startLine, startChar);
+		}
+		
+		
 		if(current == '=') //After accepting the first equal sign we read the character to look if the next one is also an equals.
 		{
 			readChar();
@@ -90,6 +123,20 @@ public class Scanner implements Iterable<Token> {
 			}
 		}
 		
+		if(current == '>')
+		{
+			readChar();
+			current = (char) this.nextChar;
+			if(current == '=')
+			{
+				readChar();
+				return new Token(">=", startLine, startChar);
+			}
+			else
+			{
+				return new Token(">", startLine, startChar);
+			}
+		}
 		
 		
 		if(this.nextChar < 0)

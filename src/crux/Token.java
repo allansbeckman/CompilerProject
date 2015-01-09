@@ -85,7 +85,24 @@ public class Token {
 		return tok;
 	}
 	
+	public static Token integerToken(String integer, int lineNum, int charPos)
+	{
+		return new Token(lineNum, charPos, integer, Kind.INTEGER);
+	}
+	
+	public static Token tokenWithKind(String lexeme, Kind kind, int lineNum, int charPos)
+	{
+		return new Token(lineNum, charPos, lexeme, kind);
+	}
 
+	private Token(int lineNum, int charPos, String lexeme, Kind kind)
+	{
+		this.lineNum = lineNum;
+		this.charPos = charPos;
+		this.lexeme = lexeme;
+		this.kind = kind;
+	}
+	
 	private Token(int lineNum, int charPos)
 	{
 		this.lineNum = lineNum;
@@ -113,7 +130,13 @@ public class Token {
 		
 		if(this.kind == null)
 		{
-			
+			try
+			{
+				int parsedInt = Integer.parseInt(lexeme);
+			} catch (NumberFormatException e)
+			{
+				this.kind = Kind.INTEGER;
+			}
 		}
 		
 		// TODO: based on the given lexeme determine and set the actual kind
