@@ -108,7 +108,7 @@ public class Scanner implements Iterable<Token> {
 				readChar();
 				current = (char) this.nextChar;
 			}
-			return new Token(string.toString(), startLine, startChar);
+			return Token.textToken(string.toString(), startLine, startChar);
 		}
 		
 		
@@ -124,6 +124,21 @@ public class Scanner implements Iterable<Token> {
 			else	//If it is not an equal sign then we still look at that character so we can find the token for it.
 			{
 				return new Token("=", startLine, startChar);
+			}
+		}
+		
+		if(current == '!') 
+		{
+			readChar();
+			current = (char) this.nextChar;
+			if(current == '=') 
+			{
+				readChar();
+				return new Token("!=", startLine, startChar);
+			}
+			else	
+			{
+				return new Token(startLine, startChar, "!", Kind.ERROR);
 			}
 		}
 		
@@ -157,6 +172,44 @@ public class Scanner implements Iterable<Token> {
 			}
 		}
 		
+		if(current == '/')
+		{
+			readChar();
+			current = (char) this.nextChar;
+			if(current == '/')
+			{
+				readChar();
+				return new Token("//", startLine, startChar);
+			}
+			else
+			{
+				return new Token("/", startLine, startChar);
+			}
+		}
+		
+		if(current == ':')
+		{
+			readChar();
+			current = (char) this.nextChar;
+			if(current == ':')
+			{
+				readChar();
+				return new Token("::", startLine, startChar);
+			}
+			else
+			{
+				return new Token(":", startLine, startChar);
+			}
+		}
+		
+		if(current == '(' || current == ')' || current == '[' || current == ']' || current == '{' || current == '}' || current == '+' || current == '-'
+				|| current == '*' || current == ',' || current == ';')
+		{
+			StringBuilder build = new StringBuilder();
+			build.append(current);
+			readChar();
+			return new Token(build.toString(), startLine, startChar);
+		}
 		
 		if(this.nextChar < 0)
 		{

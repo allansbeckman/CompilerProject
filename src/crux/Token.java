@@ -95,7 +95,33 @@ public class Token {
 		return new Token(lineNum, charPos, lexeme, kind);
 	}
 
-	private Token(int lineNum, int charPos, String lexeme, Kind kind)
+	public static Token textToken(String lexeme, int lineNum, int charPos)
+	{
+		Kind kind = null;
+		Kind[] kinds = Kind.values();
+		for(int i = 0; i < kinds.length; i++)
+		{
+			if(kinds[i].default_lexeme.compareTo(lexeme) == 0)
+			{
+				kind = kinds[i];	
+				break;
+			}
+		}
+		
+		if(kind != null) //It's a reserved keyword
+		{
+			return new Token(lineNum, charPos, lexeme, kind);
+		}
+		
+		if(lexeme.matches("[_a-zA-z][a-zA-Z_0-9]*"))
+		{
+			return new Token(lineNum, charPos, lexeme, Kind.IDENTIFIER);
+		}
+		
+		return new Token(lineNum, charPos, lexeme, Kind.ERROR);
+	}
+	
+	public Token(int lineNum, int charPos, String lexeme, Kind kind)
 	{
 		this.lineNum = lineNum;
 		this.charPos = charPos;
