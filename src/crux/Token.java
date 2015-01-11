@@ -113,7 +113,23 @@ public class Token {
 			return new Token(lineNum, charPos, lexeme, kind);
 		}
 		
-		if(lexeme.matches("[_a-zA-z][a-zA-Z_0-9]*"))
+		char[] characters = lexeme.toCharArray();
+		boolean valid = true;
+		if(isCharLetter(characters[0]) || characters[0] == '_')
+		{
+			for(int i = 1; i < characters.length; i++)
+			{
+				if(isCharLetter(characters[i]) || characters[i] == '_' || isCharDigit(characters[i]))
+				{
+					continue;
+				}
+				else
+				{
+					valid = false;
+				}
+			}
+		}
+		if(valid)
 		{
 			return new Token(lineNum, charPos, lexeme, Kind.IDENTIFIER);
 		}
@@ -154,17 +170,6 @@ public class Token {
 			}
 		}
 		
-		if(this.kind == null)
-		{
-			try
-			{
-				int parsedInt = Integer.parseInt(lexeme);
-			} catch (NumberFormatException e)
-			{
-				this.kind = Kind.INTEGER;
-			}
-		}
-		
 		// TODO: based on the given lexeme determine and set the actual kind
 		try {
 			//this.kind = Kind.valueOf(lexeme);
@@ -175,6 +180,16 @@ public class Token {
 			this.kind = Kind.ERROR;
 			this.lexeme = "Unrecognized lexeme: " + lexeme;
 		}
+	}
+	
+	public static boolean isCharDigit(char c)
+	{
+		return (c >= '0' && c <= '9');
+	}
+	
+	public static boolean isCharLetter(char c)
+	{
+		return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));
 	}
 	
 	public int lineNumber()
@@ -198,6 +213,10 @@ public class Token {
 	{
 		StringBuilder string = new StringBuilder();
 		string.append(this.kind);
+		if(this.kind == Kind.IDENTIFIER || this.kind == Kind.INTEGER || this.kind == Kind.FLOAT || this.kind == Kind.ERROR)
+		{
+			string.append("(" + this.lexeme + ")");
+		}
 		string.append("(lineNum: " + this.lineNumber() + 
 					  ", charPos: " + this.charPosition() + ")");
 		return string.toString();
