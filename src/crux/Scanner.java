@@ -9,12 +9,18 @@ public class Scanner implements Iterable<Token> {
 	public static String studentName = "Allan Beckman";
     public static String studentID = "21588725";
     public static String uciNetID = "beckmana";
+    
+    //These two char arrays are used to detect lexemes which have can be one or two characters
+    //i.e. >, >=
+    public final char[] firsts = {'>', '<', ':', '='};
+	public final char[] seconds = {'=', '=', ':', '='};
 	
 	private int lineNum;  // current line count
 	private int charPos;  // character offset for current line
 	private int nextChar; // contains the next char (-1 == EOF, -2 == BOF)
 	private Reader input;
 	
+	//Initializes the Scanner
 	Scanner(Reader reader)
 	{
 		lineNum = 1;
@@ -26,6 +32,7 @@ public class Scanner implements Iterable<Token> {
 	// OPTIONAL: helper function for reading a single char from input
 	//           can be used to catch and handle any IOExceptions,
 	//           advance the charPos or lineNum, etc.
+	//		     When a new line character is reached advance to next line
 	private int readChar() 
 	{
 		try {
@@ -47,22 +54,29 @@ public class Scanner implements Iterable<Token> {
 		return nextChar;
 	}
 	
-	//Think of program as a state machine.
-	
 	/* Invariants:
 	 *  1. call assumes that nextChar is already holding an unread character
 	 *  2. return leaves nextChar containing an untokenized character
 	 */
+	/*
+	 * This method detects tokens by reading one character at a time.
+	 * 1. Remove all whitespace, new line, or carriage returns
+	 * 2. Check if a line is commented out					(//asdf or /)
+	 * 3. Match numbers										(1.1 or 1123)
+	 * 4. Match keywords or identifiers.					(else or _else)
+	 * 5. Match not equals 									(!= or !)
+	 * 6. Match two characters or one character 			(< or <=)
+	 * 7. Match the tokens which only have one character    ({,},[,])
+	 * 8. Match the end of file character
+	 * 9. If nothing matched then return error.
+	 * 
+	 * The process is to look at a character and see where it can match
+	 * After finding that consume the character and see if the next one matches anything.
+	 */
 	public Token next()
 	{
 		char current = (char) this.nextChar;
-		
-		while(this.nextChar == 10 || this.nextChar == 13 || (char)this.nextChar == ' ')
-		{
-			readChar();
-			current = (char) this.nextChar;
-		}
-		
+		current = (char) removeWhiteSpace(this.nextChar);
 		int startLine = this.lineNum;
 		int startChar = this.charPos;
 		
@@ -74,8 +88,16 @@ public class Scanner implements Iterable<Token> {
 			{
 				readChar();
 				readLine();
-				startLine++;
-				startChar = 1;
+				if(this.nextChar != -1)
+				{
+					startLine++;
+					startChar = 1;
+				}
+				else
+				{
+					startChar = this.charPos;
+					startLine = this.lineNum;
+				}
 			}
 			else
 			{
@@ -83,7 +105,7 @@ public class Scanner implements Iterable<Token> {
 			}
 			current = (char) this.nextChar;
 		}
-
+		
 		if(current == ' ' || current == '\n' || current == '\r')
 		{
 			while(current == ' ' || current == '\n' || current == '\r')
@@ -97,7 +119,78 @@ public class Scanner implements Iterable<Token> {
 		
 		StringBuilder string = new StringBuilder();
 		
-		//Checks for integers and floats.
+		Token token = matchNumbers(current, string, startLine, startChar);
+		if(token != null)
+		{
+			return token;
+		}
+		
+		//Parses sequences of letters that can be either identifiers or keywords.
+		token = matchKeywordOrIdentifier(current, string, startLine, startChar);
+		if(token != null)
+		{
+			return token;
+		}
+
+		token = matchNotEquals(current, startLine, startChar);
+		if(token != null)
+		{
+			return token;
+		}
+		
+		token = matchTwoCharacterOrOneCharcter(current, startLine, startChar);
+		if(token != null)
+		{
+			return token;
+		}
+		
+		token = matchOneCharacter(current, startLine, startChar);
+		if(token != null)
+		{
+			return token;
+		}
+		
+		token = matchEndOfFile(current, startLine, startChar);
+		if(token != null)
+		{
+			return token;
+		}
+		//IF nothing matched move to this next character and report last character as unexpected.
+		readChar();
+		return new Token(startLine, startChar, "Unexpected character: " + Character.toString(current), Kind.ERROR);
+	}
+	
+	/*
+	 * Helper function to remove whitespace, new line, or carriage return characters.
+	 * These characters are not a part of any tokens.
+	 */
+	public int removeWhiteSpace(int current)
+	{
+		while(this.nextChar == 10 || this.nextChar == 13 || (char)this.nextChar == ' ')
+		{
+			readChar();
+			current =  this.nextChar;
+		}
+		return current;
+	}
+	
+	/*
+	 * Determines if the current character is the end of the file character.
+	 */
+	private Token matchEndOfFile(char current, int lineNum, int charPos)
+	{
+		if(this.nextChar < 0)
+		{
+			return Token.EOF(lineNum, charPos);
+		}
+		return null;
+	}
+	
+	/*
+	 * Determines if a given character is part of an integer or a float.
+	 */
+	private Token matchNumbers(char current, StringBuilder string, int startLine, int startChar)
+	{
 		if(Token.isCharDigit(current))
 		{
 			string.append(current);
@@ -121,16 +214,14 @@ public class Scanner implements Iterable<Token> {
 			else
 				return Token.integerToken(string.toString(), startLine, startChar);
 		}
-		
-		
-		//Parses sequences of letters that can be either identifiers or keywords.
-
-		Token t = letterSequence(current, string, startLine, startChar);
-		if(t != null)
-		{
-			return t;
-		}
-		
+		return null;
+	}
+	
+	/*
+	 * Determines if a given character matches the != or if it is not valid.
+	 */
+	private Token matchNotEquals(char current, int startLine, int startChar)
+	{
 		if(current == '!') 
 		{
 			readChar();
@@ -145,33 +236,13 @@ public class Scanner implements Iterable<Token> {
 				return new Token(startLine, startChar, "Unexpected character: !", Kind.ERROR);
 			}
 		}
-		
-		char[] firsts = {'>', '<', ':', '='};
-		char[] seconds = {'=', '=', ':', '='};
-		
-		Token tok = consecutiveSequence(current, firsts, seconds, startLine, startChar);
-		if(tok != null)
-		{
-			return tok;
-		}
-		
-		tok = singleCharacters(current, startLine, startChar);
-		if(tok != null)
-		{
-			return tok;
-		}
-		
-		
-		if(this.nextChar < 0)
-		{
-			return Token.EOF(lineNum, charPos);
-		}
-		char c = (char)this.nextChar;
-		readChar();
-		return new Token(startLine, startChar, "Unexpected character: " + Character.toString(c), Kind.ERROR);
+		return null;
 	}
 	
-	private Token singleCharacters(char current, int startLine, int startChar)
+	/*
+	 * Determines if a given character matches one of the special one characters 
+	 */
+	private Token matchOneCharacter(char current, int startLine, int startChar)
 	{
 		if(current == '(' || current == ')' || current == '[' || current == ']' || current == '{' || current == '}' || current == '+' || current == '-'
 				|| current == '*' || current == ',' || current == ';')
@@ -184,7 +255,10 @@ public class Scanner implements Iterable<Token> {
 		return null;
 	}
 	
-	private Token letterSequence(char current, StringBuilder string, int startLine, int startChar)
+	/*
+	 * Determines if a given character matches an identifier or keyword.
+	 */
+	private Token matchKeywordOrIdentifier(char current, StringBuilder string, int startLine, int startChar)
 	{
 		if(Token.isCharLetter(current) || current == '_')
 		{
@@ -197,27 +271,31 @@ public class Scanner implements Iterable<Token> {
 				readChar();
 				current = (char) this.nextChar;
 			}
-			return Token.textToken(string.toString(), startLine, startChar);
+			return Token.identifierOrKeyword(string.toString(), startLine, startChar);
 		}
 		return null;
 	}
 	
-	private Token consecutiveSequence(char current, char[] firstMatch, char[] secondMatch, int startLine, int startChar)
+	/*
+	 * Determines if a given character matches one of the possible two character combinations
+	 * Such as < or <=, : or ::
+	 */
+	private Token matchTwoCharacterOrOneCharcter(char current, int startLine, int startChar)
 	{
-		for(int i = 0 ; i < firstMatch.length; i++)
+		for(int i = 0 ; i < firsts.length; i++)
 		{
-			if(current == firstMatch[i])
+			if(current == firsts[i])
 			{
 				readChar();
 				current = (char) this.nextChar;
-				if(current == secondMatch[i])
+				if(current == seconds[i])
 				{
 					readChar();
-					return new Token(Character.toString(firstMatch[i]) + Character.toString(secondMatch[i]), startLine, startChar);
+					return new Token(Character.toString(firsts[i]) + Character.toString(seconds[i]), startLine, startChar);
 				}
 				else
 				{
-					return new Token(Character.toString(firstMatch[i]), startLine, startChar);
+					return new Token(Character.toString(firsts[i]), startLine, startChar);
 				}
 			}
 		}
@@ -225,7 +303,9 @@ public class Scanner implements Iterable<Token> {
 		return null;
 	}
 	
-	
+	/*
+	 * Reads the current line and move to the next line in the file.
+	 */
 	private void readLine()
 	{
 		while(this.nextChar != 10)
