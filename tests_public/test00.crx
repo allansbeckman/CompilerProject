@@ -1,3 +1,2 @@
-// : abcd
-else or and let
-hello
+var hello : type ;
+array hello : type [1];

@@ -172,6 +172,11 @@ public class Token {
 		this.lexeme = lexeme;
 	}
 	
+	public boolean is(Kind kind)
+	{
+		return(this.kind.equals(kind));
+	}
+	
 	/*
 	 * Determines if a given string of characters is a valid identifier
 	 */
