@@ -1,12 +1,15 @@
 package crux;
 import java.util.HashSet;
 import java.util.Set;
-
 public enum NonTerminal {
     
+	//public static String studentName = "Allan Beckman";
+    //public static String studentID = "21588725";
+    //public static String uciNetID = "beckmana";
     // TODO: mention that we are not modeling the empty string
     // TODO: mention that we are not doing a first set for every line in the grammar
     //       some lines have already been handled by the CruxScanner
+	
     
     DESIGNATOR(new HashSet<Token.Kind>() {
         private static final long serialVersionUID = 1L;

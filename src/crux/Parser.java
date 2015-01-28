@@ -20,7 +20,6 @@ public class Parser {
             lineData += "  ";
         }
         lineData += nonTerminal.name();
-        //System.out.println("descending " + lineData);
         parseTreeBuffer.append(lineData + "\n");
         parseTreeRecursionDepth++;
     }
@@ -135,20 +134,6 @@ public class Parser {
             return true;
         String errorMessage = reportSyntaxError(kind);
         throw new QuitParseException(errorMessage);
-        //return false;
-    }
-    
-    private boolean expect(Token.Kind[] kinds)
-    {
-    	for(int i = 0; i < kinds.length; i++)
-    	{
-    		if(accept(kinds[i]))
-    		{
-    			return true;
-    		}
-    	}
-    	
-    	return false;
     }
     
     private boolean expect(NonTerminal nt)
@@ -157,9 +142,8 @@ public class Parser {
             return true;
         String errorMessage = reportSyntaxError(nt);
         throw new QuitParseException(errorMessage);
-        //return false;
     }
-   
+    
 // Grammar Rules =====================================================
     
     // literal := INTEGER | FLOAT | TRUE | FALSE .
@@ -187,7 +171,7 @@ public class Parser {
         {
             String message = reportSyntaxError(NonTerminal.LITERAL);
         }
- 
+        
         exitRule(NonTerminal.LITERAL);
     }
     
@@ -214,7 +198,7 @@ public class Parser {
     
     // op0 := ">=" | "<=" | "!=" | "==" | ">" | "<" .
     public void op0()
-    {
+    {    	
     	enterRule(NonTerminal.OP0);
     	if(have(Token.Kind.GREATER_EQUAL))
     	{
@@ -383,8 +367,6 @@ public class Parser {
     	exitRule(NonTerminal.EXPRESSION_LIST);
     }
     
-    
-    
     public void declaration_list()
     {
     	enterRule(NonTerminal.DECLARATION_LIST);
@@ -481,8 +463,6 @@ public class Parser {
     	exitRule(NonTerminal.PARAMETER);
     }
     
-    
-    
     //variable-declaration := "var" IDENTIFIER ":" type ";"
     public void variable_Declaration()
     {
@@ -490,10 +470,10 @@ public class Parser {
     	
         expect(Token.Kind.VAR);
         expect(Token.Kind.IDENTIFIER);
-        //Symbol sym = tryDeclareSymbol(expectRetrieve(Token.Kind.IDENTIFIER));
         expect(Token.Kind.COLON);
         type();
         expect(Token.Kind.SEMICOLON);
+        
         exitRule(NonTerminal.VARIABLE_DECLARATION);
     }
     
@@ -619,16 +599,5 @@ public class Parser {
         declaration_list();
         expect(Token.Kind.EOF);
         exitRule(NonTerminal.PROGRAM);
-       
-       /* String name = "";
-        while(scanner.iterator().hasNext())
-        {
-            Token t = scanner.next();
-            name = t.lexeme();
-            System.out.println(name);
-        }
-        System.out.println(parseTreeReport());*/ 
-    }
-    
-    
+    } 
 }
