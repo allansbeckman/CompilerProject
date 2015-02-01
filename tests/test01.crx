@@ -1,8 +1,10 @@
-// test literal
+// test presence of built-in functions
 
 func main() : void {
-  let a = 4;
-  let b = 5.2;
-  let c = true;
-  let d = false;
+  ::printInt(7);
+  ::printFloat(8.0);
+  ::printBool(true);
+  ::println();
+  ::readInt();
+  ::readFloat();
 }

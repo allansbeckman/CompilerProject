@@ -1,6 +1,11 @@
-// test type
+// function and variable of same name
 
-var a: void;
-var b: int;
-var c: float;
-var d: bool;
+var foo : int;
+
+func foo() : void {
+  ::println();
+}
+
+func main() : void {
+  ::println();
+}

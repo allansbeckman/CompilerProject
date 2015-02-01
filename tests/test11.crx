@@ -1,5 +1,21 @@
-// test func invalid type
+// test large-ish symbol table, with multiple errors
 
-func foo() : type {
-  ::printInt(9);
+var gorn : void;
+func main(a:void) : int {
+  var b:float;
+  let a = 1;
 }
+var kirk : boolean;
+func destroy_all_humans(lambda: void, laMbda: int) : void
+{
+    var greek : int;
+    while (not 4) {
+        return 88 * ::main();
+        var x : int;
+        let _ = 8 and 9;
+    }
+    let x = 9;
+    let y = 20;
+}
+
+var gorn : void;

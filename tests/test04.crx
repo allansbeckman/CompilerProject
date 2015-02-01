@@ -1,8 +1,6 @@
-// test expression
+// parameter and local of same name
 
-func main() : void {
-  let a = 5;
-  let b = (4>=4);
-  let c = 4 + 3;
-  let d = 4 + 4 + 2 - 8 - 9;
+func foo(a:int) : void {
+  var a : float;
+  ::println();
 }

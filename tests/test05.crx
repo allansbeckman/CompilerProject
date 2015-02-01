@@ -1,7 +1,9 @@
-// test expression
+// shadow global with local
+
+var a : int;
 
 func main() : void {
-  let a = 4 * 4;
-  let b = 4 and 4;
-  let c = 4 / 2 * 6 / 7.0 * true;
+  var a : float;
+
+  ::printFloat(a);
 }

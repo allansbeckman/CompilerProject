@@ -1,6 +1,12 @@
-// test funcs with args
+// scoped usage
+var gorn: int;
 
-func foo(a:int, b:float, c:bool) : void {
-  ::gorn();
+func main() : void {
+  if (false) {
+    if (true) {
+      while (true) {
+        let gorn = 7;
+      }
+    }
+  }
 }
-
