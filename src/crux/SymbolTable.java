@@ -16,6 +16,7 @@ public class SymbolTable {
         linkedMap = new LinkedList<LinkedHashMap<String, Symbol>>();
         addMap();
         preDefinedFunctions();
+        
     }
     
     /*
@@ -45,8 +46,7 @@ public class SymbolTable {
     
     public void removeMap()
     {
-    	LinkedHashMap<String, Symbol> LinkedHashMap = new LinkedHashMap<String, Symbol>();
-    	linkedMap.removeFirst();
+    	this.linkedMap.removeFirst();
     }
     
     public Symbol lookup(String name) throws SymbolNotFoundError

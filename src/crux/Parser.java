@@ -261,10 +261,8 @@ public class Parser {
     public void designator()
     {
         enterRule(NonTerminal.DESIGNATOR);
-
-//        expect(Token.Kind.IDENTIFIER);
         Token identifier = expectRetrieve(Token.Kind.IDENTIFIER);
-        Symbol symbol = tryDeclareSymbol(identifier);
+        Symbol symbol = tryResolveSymbol(identifier);
         
         while (accept(Token.Kind.OPEN_BRACKET)) {
             expression0();
@@ -428,11 +426,14 @@ public class Parser {
     public void call_Expression()
     {
     	enterRule(NonTerminal.CALL_EXPRESSION);
+    	
     	expect(Token.Kind.CALL);
     	Token identifier = expectRetrieve(Token.Kind.IDENTIFIER);
     	Symbol symbol = tryResolveSymbol(identifier);
     	expect(Token.Kind.OPEN_PAREN);
+    	//enterScope();
     	expression_List();
+    	//exitScope();
     	expect(Token.Kind.CLOSE_PAREN);
     	exitRule(NonTerminal.CALL_EXPRESSION);
     }
