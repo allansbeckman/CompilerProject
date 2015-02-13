@@ -250,7 +250,7 @@ public class Parser {
     {
         enterRule(NonTerminal.DESIGNATOR);
         Token identifier = expectRetrieve(Token.Kind.IDENTIFIER);
-        Symbol symbol = tryDeclareSymbol(identifier);
+        Symbol symbol = tryResolveSymbol(identifier);
         ast.Expression expr = new ast.AddressOf(identifier.lineNumber(), identifier.charPosition(), symbol);
         while (accept(Token.Kind.OPEN_BRACKET)) {
             ast.Expression amount = expression0();
