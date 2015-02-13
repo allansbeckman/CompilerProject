@@ -1,7 +1,9 @@
 package crux;
 
 public class Symbol {
-    
+    public static String studentName = "Allan Beckman";
+    public static String studentID = "21588725";
+    public static String uciNetID = "beckmana";
     private String name;
 
     public Symbol(String name) {

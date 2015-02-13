@@ -5,9 +5,9 @@ import java.io.IOException;
 import java.io.PrintStream;
 
 public class Compiler {
-    public static String studentName = "TODO: Your Name";
-    public static String studentID = "TODO: Your 8-digit id";
-    public static String uciNetID = "TODO: uci-net id";
+    public static String studentName = "Allan Beckman";
+    public static String studentID = "21588725";
+    public static String uciNetID = "beckmana";
     
     public static void main(String[] args)
     {
@@ -23,13 +23,16 @@ public class Compiler {
         }
 
         Parser p = new Parser(s);
-        p.parse();
+        ast.Command syntaxTree = p.parse();
         if (p.hasError()) {
-            System.out.println("Error parsing file.");
+            System.out.println("Error parsing file " + sourceFilename);
             System.out.println(p.errorReport());
             System.exit(-3);
         }
-        System.out.println("Crux program successfully parsed.");
+        
+        ast.PrettyPrinter pp = new ast.PrettyPrinter();
+        syntaxTree.accept(pp);
+        System.out.println(pp.toString());
     }
 }
     

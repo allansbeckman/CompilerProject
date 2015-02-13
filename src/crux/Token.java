@@ -88,7 +88,7 @@ public class Token {
 	
 	private int lineNum; //Line number of the token
 	private int charPos; //Character position of the token	
-	Kind kind;			 //Kind of the token
+	private Kind kind;			 //Kind of the token
 	private String lexeme = "";	//Lexeme of the token
 	
 	// OPTIONAL: implement factory functions for some tokens, as you see fit
@@ -175,6 +175,11 @@ public class Token {
 	public boolean is(Kind kind)
 	{
 		return(this.kind.equals(kind));
+	}
+	
+	public Kind kind()
+	{
+		return this.kind;
 	}
 	
 	/*

@@ -9,7 +9,9 @@ import java.util.Map.Entry;
 
 
 public class SymbolTable {
-    
+    public static String studentName = "Allan Beckman";
+    public static String studentID = "21588725";
+    public static String uciNetID = "beckmana";
 	LinkedList<LinkedHashMap<String, Symbol>> linkedMap;
     public SymbolTable()
     {

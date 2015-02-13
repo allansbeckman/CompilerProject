@@ -1,15 +1,30 @@
 package crux;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
+
+import ast.Command;
 
 public class Parser {
     public static String studentName = "TODO: Your Name";
     public static String studentID = "TODO: Your 8-digit id";
     public static String uciNetID = "TODO: uci-net id";
     
- // Grammar Rule Reporting ==========================================
+// Parser ==========================================
+   
+    public ast.Command parse()
+    {
+        initSymbolTable();
+        try {
+            return program();
+        } catch (QuitParseException q) {
+            return new ast.Error(lineNumber(), charPosition(), "Could not complete parsing.");
+        }
+    }
+    
+    // Grammar Rule Reporting ==========================================
     private int parseTreeRecursionDepth = 0;
     private StringBuffer parseTreeBuffer = new StringBuffer();
 
@@ -39,14 +54,14 @@ public class Parser {
     
     private String reportSyntaxError(NonTerminal nt)
     {
-        String message = "SyntaxError(" + lineNumber() + "," + charPosition() + ")[Expected a token from " + nt.name() + " but got " + currentToken.kind + ".]";
+        String message = "SyntaxError(" + lineNumber() + "," + charPosition() + ")[Expected a token from " + nt.name() + " but got " + currentToken.kind() + ".]";
         errorBuffer.append(message + "\n");
         return message;
     }
      
     private String reportSyntaxError(Token.Kind kind)
     {
-        String message = "SyntaxError(" + lineNumber() + "," + charPosition() + ")[Expected " + kind + " but got " + currentToken.kind + ".]";
+        String message = "SyntaxError(" + lineNumber() + "," + charPosition() + ")[Expected " + kind + " but got " + currentToken.kind() + ".]";
         errorBuffer.append(message + "\n");
         return message;
     }
@@ -135,53 +150,9 @@ public class Parser {
         errorBuffer.append(message + "\n");
         errorBuffer.append(symbolTable.toString() + "\n");
         return message;
-    }    
-
+    }  
+    
 // Helper Methods ==========================================
-
-    private Token expectRetrieve(Token.Kind kind)
-    {
-        Token tok = currentToken;
-        if (accept(kind))
-            return tok;
-        String errorMessage = reportSyntaxError(kind);
-        throw new QuitParseException(errorMessage);
-        //return ErrorToken(errorMessage);
-    }
-        
-    private Token expectRetrieve(NonTerminal nt)
-    {
-        Token tok = currentToken;
-        if (accept(nt))
-            return tok;
-        String errorMessage = reportSyntaxError(nt);
-        throw new QuitParseException(errorMessage);
-        //return ErrorToken(errorMessage);
-    }
-              
-// Parser ==========================================
-    
-    private Scanner scanner;
-    private Token currentToken;
-    
-    public Parser(Scanner scanner)
-    {
-    	this.scanner = scanner;
-    	this.currentToken = scanner.next();
-    }
-    
-    public void parse()
-    {
-        initSymbolTable();
-        try {
-            program();
-        } catch (QuitParseException q) {
-            errorBuffer.append("SyntaxError(" + lineNumber() + "," + charPosition() + ")");
-            errorBuffer.append("[Could not complete parsing.]");
-        }
-    }
-    
- // Helper Methods ==========================================
     private boolean have(Token.Kind kind)
     {
         return currentToken.is(kind);
@@ -189,9 +160,9 @@ public class Parser {
     
     private boolean have(NonTerminal nt)
     {
-        return nt.firstSet().contains(currentToken.kind);
+        return nt.firstSet().contains(currentToken.kind());
     }
-
+    
     private boolean accept(Token.Kind kind)
     {
         if (have(kind)) {
@@ -209,67 +180,86 @@ public class Parser {
         }
         return false;
     }
-   
+
     private boolean expect(Token.Kind kind)
     {
         if (accept(kind))
             return true;
         String errorMessage = reportSyntaxError(kind);
         throw new QuitParseException(errorMessage);
+        //return false;
     }
-    
+        
     private boolean expect(NonTerminal nt)
     {
         if (accept(nt))
             return true;
         String errorMessage = reportSyntaxError(nt);
         throw new QuitParseException(errorMessage);
+        //return false;
+    }
+     
+    private Token expectRetrieve(Token.Kind kind)
+    {
+        Token tok = currentToken;
+        if (accept(kind))
+            return tok;
+        String errorMessage = reportSyntaxError(kind);
+        throw new QuitParseException(errorMessage);
+        //return ast.Error(errorMessage);
+    }
+        
+    private Token expectRetrieve(NonTerminal nt)
+    {
+        Token tok = currentToken;
+        if (accept(nt))
+            return tok;
+        String errorMessage = reportSyntaxError(nt);
+        throw new QuitParseException(errorMessage);
+        //return ast.Error(errorMessage);
     }
     
+// Parser ==========================================
+    
+    private Scanner scanner;
+    private Token currentToken;
+    
+    public Parser(Scanner scanner)
+    {
+    	this.scanner = scanner;
+    	this.currentToken = scanner.next();
+    }
+   
 // Grammar Rules =====================================================
     
     // literal := INTEGER | FLOAT | TRUE | FALSE .
-    public void literal()
+    public ast.Expression literal()
     {
-    	enterRule(NonTerminal.LITERAL);
+        ast.Expression expr;
+        enterRule(NonTerminal.LITERAL);
         
-        if (have(Token.Kind.INTEGER)) 
-        {
-            expect(Token.Kind.INTEGER);
-        } 
-        else if (have(Token.Kind.FLOAT)) 
-        {
-            expect(Token.Kind.FLOAT);
-        } 
-        else if (have(Token.Kind.TRUE)) 
-        {
-            expect(Token.Kind.TRUE);
-        } 
-        else if (have(Token.Kind.FALSE))
-        {
-            expect(Token.Kind.FALSE);
-        } 
-        else 
-        {
-            String message = reportSyntaxError(NonTerminal.LITERAL);
-        }
+        Token tok = expectRetrieve(NonTerminal.LITERAL);
+        expr = Command.newLiteral(tok);
         
         exitRule(NonTerminal.LITERAL);
+        return expr;
     }
-    
-    // designator := IDENTIFIER { "[" expression0 "]" } .
-    public void designator()
+
+ // designator := IDENTIFIER { "[" expression0 "]" } .
+    public ast.Expression designator()
     {
         enterRule(NonTerminal.DESIGNATOR);
         Token identifier = expectRetrieve(Token.Kind.IDENTIFIER);
-        Symbol symbol = tryResolveSymbol(identifier);
-        
+        Symbol symbol = tryDeclareSymbol(identifier);
+        ast.Expression expr = new ast.AddressOf(identifier.lineNumber(), identifier.charPosition(), symbol);
         while (accept(Token.Kind.OPEN_BRACKET)) {
-            expression0();
+            ast.Expression amount = expression0();
+            expr = new ast.Index(amount.lineNumber(), amount.charPosition(), expr, amount);
             expect(Token.Kind.CLOSE_BRACKET);
         }
         
         exitRule(NonTerminal.DESIGNATOR);
+        return expr;
     }
     
     public void type()
@@ -280,111 +270,79 @@ public class Parser {
     }
     
     // op0 := ">=" | "<=" | "!=" | "==" | ">" | "<" .
-    public void op0()
+    public Token op0()
     {    	
     	enterRule(NonTerminal.OP0);
-    	if(have(Token.Kind.GREATER_EQUAL))
-    	{
-    		expect(Token.Kind.GREATER_EQUAL);
-    	}
-    	else if(have(Token.Kind.LESSER_EQUAL))
-    	{
-    		expect(Token.Kind.LESSER_EQUAL);
-    	}
-    	else if(have(Token.Kind.NOT_EQUAL))
-    	{
-    		expect(Token.Kind.NOT_EQUAL);
-    	}
-    	else if(have(Token.Kind.EQUAL))
-    	{
-    		expect(Token.Kind.EQUAL);
-    	}
-    	else if(have(Token.Kind.GREATER_THAN))
-    	{
-    		expect(Token.Kind.GREATER_THAN);
-    	}
-    	else if(have(Token.Kind.LESS_THAN))
-    	{
-    		expect(Token.Kind.LESS_THAN);
-    	}
-    	exitRule(NonTerminal.OP0);
+		Token token = expectRetrieve(NonTerminal.OP0);
+		exitRule(NonTerminal.OP0);
+		return token;
     }
     
-    // op1 := "+" | "-" | "or" .
-    public void op1()
+ // op1 := "+" | "-" | "or" .
+    public Token op1()
     {
     	enterRule(NonTerminal.OP1);
-    	if(have(Token.Kind.ADD))
-    	{
-    		expect(Token.Kind.ADD);
-    	}
-    	else if(have(Token.Kind.SUB))
-    	{
-    		expect(Token.Kind.SUB);
-    	}
-    	else if(have(Token.Kind.OR))
-    	{
-    		expect(Token.Kind.OR);
-    	}
-    	exitRule(NonTerminal.OP1);
+		Token token = expectRetrieve(NonTerminal.OP1);
+		exitRule(NonTerminal.OP1);
+		return token;
     }
     
     //op2 := "*" | "/" | "and" .
-    public void op2()
+    public Token op2()
     {
     	enterRule(NonTerminal.OP2);
-    	if(have(Token.Kind.MUL))
-    	{
-    		expect(Token.Kind.MUL);
-    	}
-    	else if(have(Token.Kind.DIV))
-    	{
-    		expect(Token.Kind.DIV);
-    	}
-    	else if(have(Token.Kind.AND))
-    	{
-    		expect(Token.Kind.AND);
-    	}
-    	exitRule(NonTerminal.OP2);
+		Token token = expectRetrieve(NonTerminal.OP2);
+		exitRule(NonTerminal.OP2);
+		return token;
     }
     
     //expression0 := expression1 [ op0 expression1 ] .
-    public void expression0()
+    public ast.Expression expression0()
     {
     	enterRule(NonTerminal.EXPRESSION0);
-    	expression1();
+    	ast.Expression expr = expression1();
     	if(have(NonTerminal.OP0))
     	{
-    		op0();
-    		expression1();
+    		ast.Expression lhs = expr;
+    		
+    		Token op = op0();
+    		ast.Expression rhs = expression1();
+    		expr = Command.newExpression(lhs, op, rhs);
     	}
     	exitRule(NonTerminal.EXPRESSION0);
+    	return expr;
     }
     
     //expression1 := expression2 { op1  expression2 } .
-    public void expression1()
+    public ast.Expression expression1()
     {
     	enterRule(NonTerminal.EXPRESSION1);
-    	expression2();
+    	ast.Expression expr = expression2();
     	while(have(NonTerminal.OP1))
     	{
-    		op1();
-    		expression2();
+    		ast.Expression lhs = expr;
+    		Token op = op1();
+    		ast.Expression rhs = expression2();
+    		expr = Command.newExpression(lhs, op, rhs);
     	}
     	exitRule(NonTerminal.EXPRESSION1);
+    	return expr;
     }
     
     //expression2 := expression3 { op2 expression3 } .
-    public void expression2()
+    public ast.Expression expression2()
     {
     	enterRule(NonTerminal.EXPRESSION2);
-    	expression3();
+    	ast.Expression expr = expression3();
     	while(have(NonTerminal.OP2))
     	{
-    		op2();
-    		expression3();
+    		ast.Expression lhs = expr;
+    		Token op = op2();
+    		ast.Expression rhs = expression3();
+    		expr = Command.newExpression(lhs, op, rhs);
     	}
     	exitRule(NonTerminal.EXPRESSION2);
+    	return expr;
     }
     
     //expression3 := "not" expression3
@@ -392,109 +350,125 @@ public class Parser {
     //| designator
     //| call-expression
     //| literal .
-    public void expression3()
+    public ast.Expression expression3()
     {
     	enterRule(NonTerminal.EXPRESSION3);
+    	ast.Expression expr = null;
     	if(have(Token.Kind.NOT))
     	{
-    		expect(Token.Kind.NOT);
-    		expression3();
+    		Token not = expectRetrieve(Token.Kind.NOT);
+			ast.Expression lhs = expression3();
+			expr = Command.newExpression(lhs, not, null);
     	}
     	else if(have(Token.Kind.OPEN_PAREN))
     	{
     		expect(Token.Kind.OPEN_PAREN);
-    		expression0();
+    		expr = expression0();
     		expect(Token.Kind.CLOSE_PAREN);
     	}
     	else if(have(NonTerminal.DESIGNATOR))
     	{
-    		designator();
+    		ast.Expression designator = designator();
+    		expr = new ast.Dereference(designator.lineNumber(), designator.charPosition(), designator);
     	}
     	else if(have(NonTerminal.CALL_EXPRESSION))
     	{
-    		call_Expression();
+    		expr = call_Expression();
     	}
     	else if(have(NonTerminal.LITERAL))
     	{
-    		literal();
+    		expr = literal();
     	}
     	
     	exitRule(NonTerminal.EXPRESSION3);
+    	return expr;
     }
     
     // call-expression := "::" IDENTIFIER "(" expression-list ")" .
-    public void call_Expression()
+    public ast.Call call_Expression()
     {
+    	ast.Call call;
     	enterRule(NonTerminal.CALL_EXPRESSION);
-    	
-    	expect(Token.Kind.CALL);
+    	Token callToken = expectRetrieve(Token.Kind.CALL);
     	Token identifier = expectRetrieve(Token.Kind.IDENTIFIER);
     	Symbol symbol = tryResolveSymbol(identifier);
     	expect(Token.Kind.OPEN_PAREN);
-    	//enterScope();
-    	expression_List();
-    	//exitScope();
+    	ast.ExpressionList args = expression_List();
+    	call = new ast.Call(callToken.lineNumber(), callToken.charPosition(), symbol, args);
+    	
     	expect(Token.Kind.CLOSE_PAREN);
     	exitRule(NonTerminal.CALL_EXPRESSION);
+    	return call;
     }
     
     //expression-list := [ expression0 { "," expression0 } ] .
-    public void expression_List()
+    public ast.ExpressionList expression_List()
     {
     	enterRule(NonTerminal.EXPRESSION_LIST);
+    	
+    	ast.ExpressionList exprList = new ast.ExpressionList(lineNumber(), charPosition());
     	if(have(NonTerminal.EXPRESSION0))
     	{
-    		expression0();
+    		ast.Expression expr = expression0();
+    		exprList.add(expr);
     		while(have(Token.Kind.COMMA))
     		{
     			expect(Token.Kind.COMMA);
-    			expression0();
+    			ast.Expression expression = expression0();
+    			exprList.add(expression);
     		}
     	}
     	exitRule(NonTerminal.EXPRESSION_LIST);
+    	return exprList;
     }
     
-    public void declaration_list()
+    public ast.DeclarationList declaration_list()
     {
     	enterRule(NonTerminal.DECLARATION_LIST);
-        
+        ast.DeclarationList decList = new ast.DeclarationList(lineNumber(), charPosition());
         while (have(NonTerminal.DECLARATION)) {
-            declaration();
+            ast.Declaration declaration = declaration();
+            decList.add(declaration);
         }
        
         exitRule(NonTerminal.DECLARATION_LIST);
+        return decList;
     }
 
     //declaration := variable-declaration | array-declaration | function-definition .
-    public void declaration()
+    public ast.Declaration declaration()
     {
     	enterRule(NonTerminal.DECLARATION);
+    	ast.Declaration declaration = null;
     	if(have(NonTerminal.VARIABLE_DECLARATION))
     	{
-    		variable_Declaration();
+    		declaration = variable_Declaration();
     	}
     	else if(have(NonTerminal.ARRAY_DECLARATION))
     	{
-    		array_Declaration();
+    		declaration = array_Declaration();
     	}
     	else if(have(NonTerminal.FUNCTION_DEFINITION))
     	{
-    		function_Definition();
+    		declaration = function_Definition();
     	}
     	else 
     	{
             reportSyntaxError(NonTerminal.DECLARATION);
         }
     	exitRule(NonTerminal.DECLARATION);
+    	return declaration;
     }
     
     //array-declaration := "array" IDENTIFIER ":" type "[" INTEGER "]" { "[" INTEGER "]" } ";"
-    public void array_Declaration()
+    public ast.ArrayDeclaration array_Declaration()
     {
     	enterRule(NonTerminal.ARRAY_DECLARATION);
-    	expect(Token.Kind.ARRAY);
+    	
+    	Token array = expectRetrieve(Token.Kind.ARRAY);
     	Token identifier = expectRetrieve(Token.Kind.IDENTIFIER);
     	Symbol symbol = tryDeclareSymbol(identifier);
+    	ast.ArrayDeclaration arrayDeclaration = new ast.ArrayDeclaration(array.lineNumber(), array.charPosition(), symbol);
     	expect(Token.Kind.COLON);
     	type();
     	expect(Token.Kind.OPEN_BRACKET);
@@ -509,45 +483,51 @@ public class Parser {
     	}
     	expect(Token.Kind.SEMICOLON);
     	exitRule(NonTerminal.ARRAY_DECLARATION);
+    	return arrayDeclaration;
     }
     
     //function-definition := "func" IDENTIFIER "(" parameter-list ")" ":" type statement-block .
-    public void function_Definition()
+    public ast.FunctionDefinition function_Definition()
     {
     	enterRule(NonTerminal.FUNCTION_DEFINITION);
-    	expect(Token.Kind.FUNC);
+    	Token func = expectRetrieve(Token.Kind.FUNC);
     	Token identifier = expectRetrieve(Token.Kind.IDENTIFIER);
     	Symbol symbol = tryDeclareSymbol(identifier);
     	expect(Token.Kind.OPEN_PAREN);
     	
     	enterScope();
-    	parameter_List();
+    	List<Symbol> args = parameter_List();
     	expect(Token.Kind.CLOSE_PAREN);
     	expect(Token.Kind.COLON);
     	type();
-    	statement_Block();
+    	ast.StatementList statements = statement_Block();
+    	ast.FunctionDefinition functionDefinition = new ast.FunctionDefinition(func.lineNumber(), func.charPosition(), symbol, args, statements);
     	exitScope();
     	
     	exitRule(NonTerminal.FUNCTION_DEFINITION);
+    	return functionDefinition;
     }
     
     //parameter-list := [ parameter { "," parameter } ] .
-    public void parameter_List()
+    public List<Symbol> parameter_List()
     {
     	enterRule(NonTerminal.PARAMETER_LIST);
+    	List<Symbol> list = new LinkedList<Symbol>();
     	if(have(NonTerminal.PARAMETER))
     	{
     		do{
-    			parameter();
+    			Symbol symbol = parameter();
+    			list.add(symbol);
     		}
     		while(accept(Token.Kind.COMMA));
     		
     	}
     	exitRule(NonTerminal.PARAMETER_LIST);
+    	return list;
     }
     
     //parameter := IDENTIFIER ":" type .
-    public void parameter()
+    public Symbol parameter()
     {
     	enterRule(NonTerminal.PARAMETER);
     	Token identifier = expectRetrieve(Token.Kind.IDENTIFIER);
@@ -555,83 +535,100 @@ public class Parser {
     	expect(Token.Kind.COLON);
     	type();
     	exitRule(NonTerminal.PARAMETER);
+    	return symbol;
     }
     
     //variable-declaration := "var" IDENTIFIER ":" type ";"
-    public void variable_Declaration()
+    public ast.VariableDeclaration variable_Declaration()
     {
     	enterRule(NonTerminal.VARIABLE_DECLARATION);
     	
-        expect(Token.Kind.VAR);
+        Token var = expectRetrieve(Token.Kind.VAR);
         Token identifier = expectRetrieve(Token.Kind.IDENTIFIER);
         Symbol symbol = tryDeclareSymbol(identifier);
+        ast.VariableDeclaration variableDeclaration = new ast.VariableDeclaration(var.lineNumber(), var.charPosition(), symbol);
         expect(Token.Kind.COLON);
         type();
         expect(Token.Kind.SEMICOLON);
         
         exitRule(NonTerminal.VARIABLE_DECLARATION);
+        return variableDeclaration;
     }
     
     //assignment-statement := "let" designator "=" expression0 ";"
-    public void assignment_Statement()
+    public ast.Assignment assignment_Statement()
     {
     	enterRule(NonTerminal.ASSIGNMENT_STATEMENT);
-    	expect(Token.Kind.LET);
-    	designator();
+    	Token let = expectRetrieve(Token.Kind.LET);
+    	ast.Expression destination = designator();
     	expect(Token.Kind.ASSIGN);
-    	expression0();
+    	ast.Expression source = expression0();
+    	ast.Assignment assignment = new ast.Assignment(let.lineNumber(), let.charPosition(), destination, source);
     	expect(Token.Kind.SEMICOLON);
     	exitRule(NonTerminal.ASSIGNMENT_STATEMENT);
+    	return assignment;
     }
     
     //call-statement := call-expression ";"
-    public void call_Statement()
+    public ast.Call call_Statement()
     {
     	enterRule(NonTerminal.CALL_STATEMENT);
-    	call_Expression();
+    	ast.Call call = call_Expression();
     	expect(Token.Kind.SEMICOLON);
     	exitRule(NonTerminal.CALL_STATEMENT);
+    	return call;
     }
     
     //if-statement := "if" expression0 statement-block [ "else" statement-block ] .
-    public void if_Statement()
+    public ast.IfElseBranch if_Statement()
     {
     	enterRule(NonTerminal.IF_STATEMENT);
-    	expect(Token.Kind.IF);
-    	expression0();
+    	Token ifToken = expectRetrieve(Token.Kind.IF);
+    	ast.Expression condition = expression0();
     	enterScope();
-    	statement_Block();
+    	ast.StatementList thenBlock = statement_Block();
     	exitScope();
+    	ast.StatementList elseBlock;
     	if(have(Token.Kind.ELSE))
     	{
     		enterScope();
     		expect(Token.Kind.ELSE);
-    		statement_Block();
+    		elseBlock = statement_Block();
     		exitScope();
     	}
+    	else
+    	{
+    		elseBlock = new ast.StatementList(lineNumber(), charPosition());
+    	}
+    	ast.IfElseBranch ifElseBranch = new ast.IfElseBranch(ifToken.lineNumber(), ifToken.charPosition(), condition, thenBlock, elseBlock);
     	exitRule(NonTerminal.IF_STATEMENT);
+    	return ifElseBranch;
     }
     
     //while-statement := "while" expression0 statement-block .
-    public void while_Statement()
+    public ast.WhileLoop while_Statement()
     {
     	enterRule(NonTerminal.WHILE_STATEMENT);
-    	expect(Token.Kind.WHILE);
-    	expression0();
+    	Token whileToken = expectRetrieve(Token.Kind.WHILE);
+    	ast.Expression condition = expression0();
     	enterScope();
-    	statement_Block();
+    	ast.StatementList body = statement_Block();
     	exitScope();
+    	ast.WhileLoop whileLoop = new ast.WhileLoop(whileToken.lineNumber(), whileToken.charPosition(), condition, body);
     	exitRule(NonTerminal.WHILE_STATEMENT);
+    	return whileLoop;
     }
     
     //return-statement := "return" expression0 ";" .
-    public void return_Statement()
+    public ast.Return return_Statement()
     {
     	enterRule(NonTerminal.RETURN_STATEMENT);
-    	expect(Token.Kind.RETURN);
-    	expression0();
+    	Token returnToken = expectRetrieve(Token.Kind.RETURN);
+    	ast.Expression expr = expression0();
     	expect(Token.Kind.SEMICOLON);
+    	ast.Return returnStatement = new ast.Return(returnToken.lineNumber(), returnToken.charPosition(), expr);
     	exitRule(NonTerminal.RETURN_STATEMENT);
+    	return returnStatement;
     }
     
     /*
@@ -642,69 +639,71 @@ public class Parser {
            | while-statement
            | return-statement .
      */
-    public void statement()
+    public ast.Statement statement()
     {
     	enterRule(NonTerminal.STATEMENT);
+    	ast.Statement statement = null;
     	if(have(NonTerminal.VARIABLE_DECLARATION))
     	{
-    		variable_Declaration();
+    		statement = variable_Declaration();
     	}
     	else if(have(NonTerminal.CALL_STATEMENT))
     	{
-    		call_Statement();
+    		statement = call_Statement();
     	}
     	else if(have(NonTerminal.ASSIGNMENT_STATEMENT))
     	{
-    		assignment_Statement();
+    		statement = assignment_Statement();
     	}
     	else if(have(NonTerminal.IF_STATEMENT))
     	{
-    		if_Statement();
+    		statement = if_Statement();
     	}
     	else if(have(NonTerminal.WHILE_STATEMENT))
     	{
-    		while_Statement();
+    		statement = while_Statement();
     	}
     	else if(have(NonTerminal.RETURN_STATEMENT))
     	{
-    		return_Statement();
+    		statement = return_Statement();
     	}
     	exitRule(NonTerminal.STATEMENT);
+    	return statement;
     }
     
     //statement-list := { statement } .
-    public void statement_List()
+    public ast.StatementList statement_List()
     {
     	enterRule(NonTerminal.STATEMENT_LIST);
+    	ast.StatementList statementList = new ast.StatementList(lineNumber(), charPosition());
     	while(have(NonTerminal.STATEMENT))
     	{
-    		statement();
+    		ast.Statement statement = statement();
+    		statementList.add(statement);
     	}
     	exitRule(NonTerminal.STATEMENT_LIST);
+    	return statementList;
     }
     
     //statement-block := "{" statement-list "}" .
-    public void statement_Block()
+    public ast.StatementList statement_Block()
     {
     	enterRule(NonTerminal.STATEMENT_BLOCK);
     	expect(Token.Kind.OPEN_BRACE);
-    	statement_List();
+    	ast.StatementList list = statement_List();
     	expect(Token.Kind.CLOSE_BRACE);
     	exitRule(NonTerminal.STATEMENT_BLOCK);
+    	return list;
     }
     
     // program := declaration-list EOF .
-    public void program()
+    public ast.DeclarationList program()
     {
     	enterRule(NonTerminal.PROGRAM);
-        declaration_list();
-        expect(Token.Kind.EOF);
-        exitRule(NonTerminal.PROGRAM);
-    } 
-
-
-//    public void program()
-//    {
-//        throw new RuntimeException("implement symbol table into grammar rules");
-//    }
+		ast.DeclarationList declarationList = declaration_list();
+		expect(Token.Kind.EOF);
+		exitRule(NonTerminal.PROGRAM);
+		return declarationList;
+    }
+    
 }
