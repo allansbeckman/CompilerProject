@@ -8,9 +8,9 @@ import java.util.Stack;
 import ast.Command;
 
 public class Parser {
-    public static String studentName = "TODO: Your Name";
-    public static String studentID = "TODO: Your 8-digit id";
-    public static String uciNetID = "TODO: uci-net id";
+    public static String studentName = "Allan Beckman";
+    public static String studentID = "21588725";
+    public static String uciNetID = "beckmana";
     
 // Parser ==========================================
    
