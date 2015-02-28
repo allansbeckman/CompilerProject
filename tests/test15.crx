@@ -1,18 +1,7 @@
-// nesting
+// invalid array
 
+array x : void[3][3][3];
+  
 func main() : void {
-
-  while true {
-    if false {
-      if true {
-        while a {
-          ::nothing();
-        }
-      } else {
-         ::gorn();
-      }
-    }
-    ::kirk();
-  }
-  ::spock();
+  ::println();
 }

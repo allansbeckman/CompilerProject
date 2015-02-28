@@ -1,60 +1,10 @@
-Error parsing file.
-ResolveSymbolError(15,13)[Could not find _.]
-Symbol(readInt)
-Symbol(readFloat)
-Symbol(printBool)
-Symbol(printInt)
-Symbol(printFloat)
-Symbol(println)
-Symbol(gorn)
-Symbol(main)
-Symbol(kirk)
-Symbol(destroy_all_humans)
-  Symbol(lambda)
-  Symbol(laMbda)
-  Symbol(greek)
-    Symbol(x)
-
-ResolveSymbolError(17,9)[Could not find x.]
-Symbol(readInt)
-Symbol(readFloat)
-Symbol(printBool)
-Symbol(printInt)
-Symbol(printFloat)
-Symbol(println)
-Symbol(gorn)
-Symbol(main)
-Symbol(kirk)
-Symbol(destroy_all_humans)
-  Symbol(lambda)
-  Symbol(laMbda)
-  Symbol(greek)
-
-ResolveSymbolError(18,9)[Could not find y.]
-Symbol(readInt)
-Symbol(readFloat)
-Symbol(printBool)
-Symbol(printInt)
-Symbol(printFloat)
-Symbol(println)
-Symbol(gorn)
-Symbol(main)
-Symbol(kirk)
-Symbol(destroy_all_humans)
-  Symbol(lambda)
-  Symbol(laMbda)
-  Symbol(greek)
-
-DeclareSymbolError(21,5)[gorn already exists.]
-Symbol(readInt)
-Symbol(readFloat)
-Symbol(printBool)
-Symbol(printInt)
-Symbol(printFloat)
-Symbol(println)
-Symbol(gorn)
-Symbol(main)
-Symbol(kirk)
-Symbol(destroy_all_humans)
-
+Error type-checking file.
+TypeError(5,3)[Variable f has invalid type float.]
+TypeError(6,3)[Variable b has invalid type bool.]
+TypeError(8,10)[Cannot dereference Address(int)]
+TypeError(8,3)[WhileLoop requires bool condition not ErrorType(Cannot dereference Address(int)).]
+TypeError(9,10)[Cannot dereference Address(float)]
+TypeError(9,3)[WhileLoop requires bool condition not ErrorType(Cannot dereference Address(float)).]
+TypeError(10,10)[Cannot dereference Address(bool)]
+TypeError(10,3)[WhileLoop requires bool condition not ErrorType(Cannot dereference Address(bool)).]
 

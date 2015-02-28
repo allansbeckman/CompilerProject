@@ -1,21 +1,11 @@
-// test large-ish symbol table, with multiple errors
+// test while-loop requires boolean condition
 
-var gorn : void;
-func main(a:void) : int {
-  var b:float;
-  let a = 1;
-}
-var kirk : boolean;
-func destroy_all_humans(lambda: void, laMbda: int) : void
-{
-    var greek : int;
-    while (not 4) {
-        return 88 * ::main();
-        var x : int;
-        let _ = 8 and 9;
-    }
-    let x = 9;
-    let y = 20;
-}
+func main() : void {
+  var i:int;
+  var f:float;
+  var b:bool;
 
-var gorn : void;
+  while (i) { ::printInt(7); }
+  while (f) { ::printInt(8); }
+  while (b) { ::printInt(9); }
+}

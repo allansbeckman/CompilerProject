@@ -1,1 +1,4 @@
-Crux program successfully parsed.
+Error type-checking file.
+TypeError(3,1)[Function foo has an error in argument in position 0: Unkown type: error]
+TypeError(8,3)[Cannot call ErrorType(Type not set.) using TypeList(int).]
+

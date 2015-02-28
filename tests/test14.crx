@@ -1,5 +1,6 @@
-// return
+// invalid variable type
 
 func main() : void {
-  return 7;
+  var a:void;
+  ::println();
 }

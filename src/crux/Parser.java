@@ -6,14 +6,30 @@ import java.util.List;
 import java.util.Stack;
 
 import ast.Command;
+import types.*;
 
 public class Parser {
     public static String studentName = "Allan Beckman";
     public static String studentID = "21588725";
     public static String uciNetID = "beckmana";
+  
+// Typing System ===================================
     
-// Parser ==========================================
-   
+    private Type tryResolveType(String typeStr)
+    {
+        return Type.getBaseType(typeStr);
+    }
+    
+    private List<Type> collectTypes(List<Symbol> symbols) {
+		List<Type> types = new LinkedList<Type>();
+		for (Symbol symbol : symbols) {
+			types.add(symbol.type());
+		}
+    	return types;
+    }
+        
+ // Parser ==========================================
+    
     public ast.Command parse()
     {
         initSymbolTable();
@@ -219,6 +235,18 @@ public class Parser {
         //return ast.Error(errorMessage);
     }
     
+    /**
+    +	 * Expect an integer token.
+    +	 * @return An integer.
+    +	 * @throws QuitParseException if an integer could not be fetched.
+    +	 */
+    private Integer expectInteger() {
+    	String num = currentToken.lexeme();
+    	expect(Token.Kind.INTEGER);
+    	return Integer.valueOf(num);
+    }
+    
+    
 // Parser ==========================================
     
     private Scanner scanner;
@@ -239,6 +267,8 @@ public class Parser {
         enterRule(NonTerminal.LITERAL);
         
         Token tok = expectRetrieve(NonTerminal.LITERAL);
+        Type tokenType = tryResolveType(tok.lexeme());
+        
         expr = Command.newLiteral(tok);
         
         exitRule(NonTerminal.LITERAL);
@@ -262,11 +292,13 @@ public class Parser {
         return expr;
     }
     
-    public void type()
+    public Type type()
     {
     	enterRule(NonTerminal.TYPE);
-    	expect(Token.Kind.IDENTIFIER);
+    	Token typeToken = expectRetrieve(Token.Kind.IDENTIFIER);
+    	Type type = tryResolveType(typeToken.lexeme());
     	exitRule(NonTerminal.TYPE);
+    	return type;
     }
     
     // op0 := ">=" | "<=" | "!=" | "==" | ">" | "<" .
@@ -470,7 +502,8 @@ public class Parser {
     	Symbol symbol = tryDeclareSymbol(identifier);
     	ast.ArrayDeclaration arrayDeclaration = new ast.ArrayDeclaration(array.lineNumber(), array.charPosition(), symbol);
     	expect(Token.Kind.COLON);
-    	type();
+    	Type type = type();
+    	symbol.setType(type);
     	expect(Token.Kind.OPEN_BRACKET);
     	
     	expect(Token.Kind.INTEGER);
@@ -497,9 +530,11 @@ public class Parser {
     	
     	enterScope();
     	List<Symbol> args = parameter_List();
+    	TypeList argTypes = new TypeList(collectTypes(args));
     	expect(Token.Kind.CLOSE_PAREN);
     	expect(Token.Kind.COLON);
-    	type();
+    	Type returnType = type();
+    	symbol.setType(new FuncType(argTypes, returnType));
     	ast.StatementList statements = statement_Block();
     	ast.FunctionDefinition functionDefinition = new ast.FunctionDefinition(func.lineNumber(), func.charPosition(), symbol, args, statements);
     	exitScope();
@@ -533,7 +568,8 @@ public class Parser {
     	Token identifier = expectRetrieve(Token.Kind.IDENTIFIER);
     	Symbol symbol = tryDeclareSymbol(identifier);
     	expect(Token.Kind.COLON);
-    	type();
+    	Type type = type();
+    	symbol.setType(type);
     	exitRule(NonTerminal.PARAMETER);
     	return symbol;
     }
@@ -548,7 +584,8 @@ public class Parser {
         Symbol symbol = tryDeclareSymbol(identifier);
         ast.VariableDeclaration variableDeclaration = new ast.VariableDeclaration(var.lineNumber(), var.charPosition(), symbol);
         expect(Token.Kind.COLON);
-        type();
+        Type type = type();
+        symbol.setType(type);
         expect(Token.Kind.SEMICOLON);
         
         exitRule(NonTerminal.VARIABLE_DECLARATION);
@@ -705,5 +742,4 @@ public class Parser {
 		exitRule(NonTerminal.PROGRAM);
 		return declarationList;
     }
-    
 }

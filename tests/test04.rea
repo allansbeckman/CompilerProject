@@ -1,12 +1,4 @@
-Error parsing file.
-DeclareSymbolError(4,7)[a already exists.]
-Symbol(readInt)
-Symbol(readFloat)
-Symbol(printBool)
-Symbol(printInt)
-Symbol(printFloat)
-Symbol(println)
-Symbol(foo)
-  Symbol(a)
-
+Error type-checking file.
+TypeError(3,1)[Function foo has a void argument in position 0.]
+TypeError(8,3)[Cannot call ErrorType(Type not set.) using TypeList(int).]
 

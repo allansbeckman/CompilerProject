@@ -1,11 +1,8 @@
-Error parsing file.
-DeclareSymbolError(5,6)[foo already exists.]
-Symbol(readInt)
-Symbol(readFloat)
-Symbol(printBool)
-Symbol(printInt)
-Symbol(printFloat)
-Symbol(println)
-Symbol(foo)
-
+Error type-checking file.
+TypeError(4,10)[Cannot dereference Address(int)]
+TypeError(4,3)[Function myInt returns int not ErrorType(Cannot dereference Address(int)).]
+TypeError(8,10)[Cannot dereference Address(float)]
+TypeError(8,3)[Function myIntError returns int not ErrorType(Cannot dereference Address(float)).]
+TypeError(12,3)[Cannot call func(TypeList(int)):int using TypeList(int).]
+TypeError(13,3)[Cannot call func(TypeList(float)):int using TypeList(float).]
 
