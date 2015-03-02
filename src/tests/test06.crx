@@ -1,5 +1,0 @@
-// function not found
-
-func main() : void {
-  ::foo();
-}

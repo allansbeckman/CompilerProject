@@ -1,8 +1,0 @@
-// test redefinition
-
-var a: int;
-var a:float;
-
-func main() : void {
-  ::println();
-}
