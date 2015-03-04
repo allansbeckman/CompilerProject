@@ -1,57 +1,50 @@
 package crux;
 
 public class Token {
-	public static String studentName = "Allan Beckman";
-    public static String studentID = "21588725";
-    public static String uciNetID = "beckmana";
-	/*
-	 * Enum type for the Tokens and corresponding lexemes.
-	 */
+	
 	public static enum Kind {
-		/*
-		 * Keywords
-		 */
 		AND("and"),
 		OR("or"),
 		NOT("not"),
+		
 		LET("let"),
 		VAR("var"),
 		ARRAY("array"),
 		FUNC("func"),
+		
+		TRUE("true"),
+		FALSE("false"),
+		
 		IF("if"),
 		ELSE("else"),
 		WHILE("while"),
-		TRUE("true"),
-		FALSE("false"),
 		RETURN("return"),
-		/*
-		 * Reserved characters
-		 */
+		
 		OPEN_PAREN("("),
 		CLOSE_PAREN(")"),
 		OPEN_BRACE("{"),
 		CLOSE_BRACE("}"),
 		OPEN_BRACKET("["),
 		CLOSE_BRACKET("]"),
+		
 		ADD("+"),
 		SUB("-"),
 		MUL("*"),
 		DIV("/"),
+		
 		GREATER_EQUAL(">="),
 		LESSER_EQUAL("<="),
 		NOT_EQUAL("!="),
 		EQUAL("=="),
 		GREATER_THAN(">"),
 		LESS_THAN("<"),
+		
 		ASSIGN("="),
 		COMMA(","),
 		SEMICOLON(";"),
 		COLON(":"),
 		CALL("::"),
 		
-		/*
-		 * Kinds which may have different lexemes
-		 */
 		IDENTIFIER(),
 		INTEGER(),
 		FLOAT(),
@@ -60,41 +53,46 @@ public class Token {
 		
 		private String default_lexeme;
 		
-		/*
-		 * Constructs a Kind with no lexeme value.
-		 */
 		Kind()
 		{
 			default_lexeme = "";
 		}
 		
-		/*
-		 * Constructs a Kind with a lexeme value.
-		 */
 		Kind(String lexeme)
 		{
 			default_lexeme = lexeme;
 		}
 		
-		public boolean hasStaticLexeme()
+		public boolean matches(int c)
 		{
-			return default_lexeme != null;
+			return default_lexeme.length() == 1
+                && default_lexeme.charAt(0) == c;
 		}
 		
-		// OPTIONAL: if you wish to also make convenience functions, feel free
-		//           for example, boolean matches(String lexeme)
-		//           can report whether a Token.Kind has the given lexeme
+		public boolean matches(String lexeme)
+		{
+			return default_lexeme.equals(lexeme);
+		}
+		
+		public boolean hasStaticLexeme()
+		{
+			return default_lexeme != "";
+		}
 	}
 	
-	private int lineNum; //Line number of the token
-	private int charPos; //Character position of the token	
-	private Kind kind;			 //Kind of the token
-	private String lexeme = "";	//Lexeme of the token
+	private int lineNum;
+	private int charPos;
+	Kind kind;
+	private String lexeme = "";
+
+	public static Token Error(String description, int linePos, int charPos)
+	{
+		Token tok = new Token(linePos, charPos);
+		tok.kind = Kind.ERROR;
+		tok.lexeme = description;
+		return tok;
+	}
 	
-	// OPTIONAL: implement factory functions for some tokens, as you see fit
-	/*
-	 * Static factory function to create an end of file Token
-	 */
 	public static Token EOF(int linePos, int charPos)
 	{
 		Token tok = new Token(linePos, charPos);
@@ -102,180 +100,132 @@ public class Token {
 		return tok;
 	}
 	
-	/*
-	 * Static factory function to create an integer Token
-	 */
-	public static Token integerToken(String integer, int lineNum, int charPos)
+	public static Token Identifier(String name, int linePos, int charPos)
 	{
-		return new Token(lineNum, charPos, integer, Kind.INTEGER);
+		Token tok = new Token(linePos, charPos);
+		tok.kind = Kind.IDENTIFIER;
+		tok.lexeme = name;
+		return tok;
 	}
 	
-	/*
-	 * Static factory function to create a Token with a given Kind
-	 */
-	public static Token tokenWithKind(String lexeme, Kind kind, int lineNum, int charPos)
+	public static Token Integer(String value, int linePos, int charPos)
 	{
-		return new Token(lineNum, charPos, lexeme, kind);
+		Token tok = new Token(linePos, charPos);
+		tok.kind = Kind.INTEGER;
+		tok.lexeme = value;
+		return tok;
 	}
-
-	/*
-	 * Static factory function that creates either an Identifier Token or Keyword Token
-	 */
-	public static Token identifierOrKeyword(String lexeme, int lineNum, int charPos)
+		
+	public static Token Float(String value, int linePos, int charPos)
 	{
-		Kind kind = findKindFromLexeme(lexeme);
-		
-		if(kind != null) //It's a reserved keyword
-		{
-			return new Token(lineNum, charPos, lexeme, kind);
-		}
-		
-		boolean valid = isValidIdentifier(lexeme);
-		if(valid)
-		{
-			return new Token(lineNum, charPos, lexeme, Kind.IDENTIFIER);
-		}
-		
-		return new Token(lineNum, charPos, lexeme, Kind.ERROR);
+		Token tok = new Token(linePos, charPos);
+		tok.kind = Kind.FLOAT;
+		tok.lexeme = value;
+		return tok;
 	}
 	
-	/*
-	 * Token constructor
-	 */
-	public Token(int lineNum, int charPos, String lexeme, Kind kind)
-	{
-		this.lineNum = lineNum;
-		this.charPos = charPos;
-		this.lexeme = lexeme;
-		this.kind = kind;
-	}
-	
-	/*
-	 * Creates an error Token
-	 */
 	private Token(int lineNum, int charPos)
 	{
 		this.lineNum = lineNum;
 		this.charPos = charPos;
+		
+		// if we don't match anything, signal error
 		this.kind = Kind.ERROR;
 		this.lexeme = "No Lexeme Given";
 	}
 	
-	/*
-	 * Token constructor which determines Kind from the lexeme
-	 */
 	public Token(String lexeme, int lineNum, int charPos)
 	{
 		this.lineNum = lineNum;
 		this.charPos = charPos;
-		this.kind = findKindFromLexeme(lexeme);
-		this.lexeme = lexeme;
-	}
-	
-	public boolean is(Kind kind)
-	{
-		return(this.kind.equals(kind));
-	}
-	
-	public Kind kind()
-	{
-		return this.kind;
-	}
-	
-	/*
-	 * Determines if a given string of characters is a valid identifier
-	 */
-	private static boolean isValidIdentifier(String lexeme)
-	{
-		char[] characters = lexeme.toCharArray();
-		boolean valid = true;
-		if(isCharLetter(characters[0]) || characters[0] == '_')
-		{
-			for(int i = 1; i < characters.length; i++)
-			{
-				if(isCharLetter(characters[i]) || characters[i] == '_' || isCharDigit(characters[i]))
-				{
-					continue;
-				}
-				else
-				{
-					valid = false;
-				}
+		
+		for (Kind tok: Token.Kind.values()) {
+			if (tok.matches(lexeme)) {
+				this.kind = tok;
+				return;
 			}
 		}
-		return valid;
+		
+		// if we don't match anything, signal error
+		this.kind = Kind.ERROR;
+		this.lexeme = "Unrecognized lexeme: " + lexeme;
 	}
 	
-	/*
-	 * Determines the Kind of a Token with a given lexeme.
-	 */
-	private static Kind findKindFromLexeme(String lexeme)
-	{
-		Kind kind = null;
-		Kind[] kinds = Kind.values();
-		for(int i = 0; i < kinds.length; i++)
-		{
-			if(kinds[i].default_lexeme.compareTo(lexeme) == 0)
-			{
-				kind = kinds[i];	
-				break;
-			}
-		}
-		return kind;
-	}
-	
-	/*
-	 * Returns true if a given character is a digit(0-9)
-	 */
-	public static boolean isCharDigit(char c)
-	{
-		return (c >= '0' && c <= '9');
-	}
-	
-	/*
-	 * Returns true if a given character is a letter (a-z,A-Z)
-	 */
-	public static boolean isCharLetter(char c)
-	{
-		return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));
-	}
-	
-	/*
-	 * Returns line number
-	 */
 	public int lineNumber()
 	{
 		return lineNum;
 	}
 	
-	/*
-	 * returns character position
-	 */
 	public int charPosition()
 	{
 		return charPos;
 	}
 	
-	// Return the lexeme representing or held by this token
 	public String lexeme()
 	{
-		return this.lexeme;
+		return kind.hasStaticLexeme() ? kind.default_lexeme : lexeme;
+	}
+	
+	public String toString()
+	{
+		String str = kind.name();
+		
+		if (!kind.hasStaticLexeme())
+			str += "(" + lexeme() + ")";
+		
+		str += "(";
+		str += "lineNum:" + lineNum;
+		str += ", ";
+		str += "charPos:" + charPos;
+		str += ")";
+		
+		return str;
 	}
 	
 	/*
-	 * To string method for Token.
-	 */
-	public String toString()
+	public String javaString()
 	{
-		StringBuilder string = new StringBuilder();
-		string.append(this.kind);
-		if(this.kind == Kind.IDENTIFIER || this.kind == Kind.INTEGER || this.kind == Kind.FLOAT || this.kind == Kind.ERROR)
-		{
-			string.append("(" + this.lexeme + ")");
-		}
-		string.append("(lineNum: " + this.lineNumber() + 
-					  ", charPos: " + this.charPosition() + ")");
-		return string.toString();
+		String str = "";
+		
+		if (is(Kind.IDENTIFIER))
+			str += "new CruxToken.Identifier(\"" + lexeme +"\", ";
+		else if (is(Kind.ERROR))
+			str += "new CruxToken.Error(\"" + lexeme + "\", ";
+		else if (is(Kind.INTEGER))
+			str += "new CruxToken.Integer(\"" + lexeme + "\", ";
+		else if (is(Kind.FLOAT))
+			str += "new CruxToken.Float(\"" + lexeme + "\", ";
+		else if (is(Kind.EOF))
+			str += "new CruxToken.EOF(";
+		else
+			str += "new CruxToken(\"" + kind.default_lexeme + "\", ";
+		
+		// TODO: should java-escape the token.name() strings.
+		str += lineNum + ", " + charPos + ");";
+		
+		return str;
 	}
-
+	*/
+	
+	public boolean is(Token.Kind kind)
+	{
+		return this.kind == kind;
+	}
+	
+	public boolean equals(Object other)
+	{
+		if (!(other instanceof Token))
+			return false;
+		Token tok = (Token)other;
+			
+		return this.kind == tok.kind
+		    && this.lexeme().equals(tok.lexeme())
+		    && this.lineNum == tok.lineNum
+		    && this.charPos == tok.charPos;
+	}
+	
+	public Kind kind()
+	{
+		return kind;
+	}
 }

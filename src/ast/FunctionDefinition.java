@@ -40,7 +40,7 @@ public class FunctionDefinition extends Command implements Declaration {
 	
 	@Override
 	public String toString() {
-		return super.toString() + "[" + func + ", " + args + "]";
+		return super.toString() + "[" + func.toString() + "]";
 	}
 
 	@Override

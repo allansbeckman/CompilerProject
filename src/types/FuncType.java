@@ -26,6 +26,14 @@ public class FuncType extends Type {
    {
       return "func(" + args + "):" + ret;
    }
+   
+   @Override
+   public Type call(Type args)
+   {
+      if (!this.args.equivalent(args))
+         return super.call(args);
+      return ret;
+   }
 
    @Override
    public boolean equivalent(Type that)

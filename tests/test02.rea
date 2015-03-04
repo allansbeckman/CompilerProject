@@ -1,4 +1,1 @@
-Error type-checking file.
-TypeError(4,10)[Cannot call func(TypeList()):void using TypeList().]
-TypeError(4,3)[Function main returns void not ErrorType(Cannot call func(TypeList()):void using TypeList().).]
-
+Crux Program has no type errors.

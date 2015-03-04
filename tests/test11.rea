@@ -1,10 +1,4 @@
 Error type-checking file.
-TypeError(5,3)[Variable f has invalid type float.]
-TypeError(6,3)[Variable b has invalid type bool.]
-TypeError(8,10)[Cannot dereference Address(int)]
-TypeError(8,3)[WhileLoop requires bool condition not ErrorType(Cannot dereference Address(int)).]
-TypeError(9,10)[Cannot dereference Address(float)]
-TypeError(9,3)[WhileLoop requires bool condition not ErrorType(Cannot dereference Address(float)).]
-TypeError(10,10)[Cannot dereference Address(bool)]
-TypeError(10,3)[WhileLoop requires bool condition not ErrorType(Cannot dereference Address(bool)).]
+TypeError(8,3)[WhileLoop requires bool condition not int.]
+TypeError(9,3)[WhileLoop requires bool condition not float.]
 

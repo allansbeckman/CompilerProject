@@ -1,13 +1,6 @@
 Error type-checking file.
-TypeError(5,3)[Variable f has invalid type float.]
-TypeError(6,3)[Variable b has invalid type bool.]
-TypeError(8,19)[Cannot dereference Address(int)]
-TypeError(8,15)[Cannot negate ErrorType(Cannot dereference Address(int)).]
-TypeError(8,3)[Cannot call ErrorType(Type not set.) using TypeList(ErrorType(Cannot negate ErrorType(Cannot dereference Address(int)).)).]
-TypeError(9,19)[Cannot dereference Address(float)]
-TypeError(9,15)[Cannot negate ErrorType(Cannot dereference Address(float)).]
-TypeError(9,3)[Cannot call ErrorType(Type not set.) using TypeList(ErrorType(Cannot negate ErrorType(Cannot dereference Address(float)).)).]
-TypeError(10,19)[Cannot dereference Address(bool)]
-TypeError(10,15)[Cannot negate ErrorType(Cannot dereference Address(bool)).]
-TypeError(10,3)[Cannot call ErrorType(Type not set.) using TypeList(ErrorType(Cannot negate ErrorType(Cannot dereference Address(bool)).)).]
+TypeError(8,15)[Cannot negate int.]
+TypeError(8,3)[Cannot call func(TypeList(bool)):void using TypeList(ErrorType(Cannot negate int.)).]
+TypeError(9,15)[Cannot negate float.]
+TypeError(9,3)[Cannot call func(TypeList(bool)):void using TypeList(ErrorType(Cannot negate float.)).]
 
